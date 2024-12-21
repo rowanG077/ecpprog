@@ -112,7 +112,7 @@ enum flash_cmd {
 // JTAG -> SPI functions
 // ---------------------------------------------------------
 
-/* 
+/*
  * JTAG performrs all shifts LSB first, our FLSAH is expeting bytes MSB first,
  * There are a few ways to fix this, for now we just bit-reverse all the input data to the JTAG core
  */
@@ -148,7 +148,7 @@ void xfer_spi(uint8_t* data, uint32_t len){
 }
 
 void send_spi(uint8_t* data, uint32_t len){
-	
+
 	/* Flip bit order of all bytes */
 	for(int i = 0; i < len; i++){
 		data[i] = bit_reverse(data[i]);
@@ -156,7 +156,7 @@ void send_spi(uint8_t* data, uint32_t len){
 
 	jtag_go_to_state(STATE_SHIFT_DR);
 	/* Stay in SHIFT-DR state, this keep CS low */
-	jtag_tap_shift(data, data, len * 8, false); 
+	jtag_tap_shift(data, data, len * 8, false);
 
 		/* Flip bit order of all bytes */
 	for(int i = 0; i < len; i++){
@@ -221,8 +221,8 @@ static uint8_t read_status_1(){
 	if (verbose) {
 		fprintf(stderr, "SR1: 0x%02X\n", data[1]);
 		fprintf(stderr, " - SPRL: %s\n",
-			((data[1] & (1 << 7)) == 0) ? 
-				"unlocked" : 
+			((data[1] & (1 << 7)) == 0) ?
+				"unlocked" :
 				"locked");
 		fprintf(stderr, " -  SPM: %s\n",
 			((data[1] & (1 << 6)) == 0) ?
@@ -272,8 +272,8 @@ static uint8_t read_status_2(){
 	if (verbose) {
 		fprintf(stderr, "SR2: 0x%02X\n", data[1]);
 		fprintf(stderr, " - QE: %s\n",
-			((data[1] & (1 << 2)) == 0) ? 
-				"enabled" : 
+			((data[1] & (1 << 2)) == 0) ?
+				"enabled" :
 				"disabled");
 
 	}
@@ -353,7 +353,7 @@ static void flash_prog(int addr, uint8_t *data, int n)
 
 	send_spi(command, 4);
 	xfer_spi(data, n);
-	
+
 	if (verbose)
 		for (int i = 0; i < n; i++)
 			fprintf(stderr, "%02x%c", data[i], i == n - 1 || i % 32 == 31 ? '\n' : ' ');
@@ -377,7 +377,7 @@ static void flash_continue_read(uint8_t *data, int n)
 
 	memset(data, 0, n);
 	send_spi(data, n);
-	
+
 	if (verbose)
 		for (int i = 0; i < n; i++)
 			fprintf(stderr, "%02x%c", data[i], i == n - 1 || i % 32 == 31 ? '\n' : ' ');
@@ -432,9 +432,9 @@ static void flash_disable_protection()
 	// Write Status Register 1 <- 0x00
 	uint8_t data[2] = { FC_WSR1, 0x00 };
 	xfer_spi(data, 2);
-	
+
 	flash_wait();
-	
+
 	// Read Status Register 1
 	data[0] = FC_RSR1;
 
@@ -451,7 +451,7 @@ static void flash_disable_protection()
 
 static bool print_idcode(uint32_t idcode){
 	connected_device.id = idcode;
-	
+
 	/* ECP5 Parts */
 	for(int i = 0; i < sizeof(ecp_devices)/sizeof(struct device_id_pair); i++){
 		if(idcode == ecp_devices[i].device_id)
@@ -489,7 +489,7 @@ static bool read_idcode(){
 	jtag_tap_shift(data, data, 32, true);
 
 	uint32_t idcode = 0;
-	
+
 	/* Format the IDCODE into a 32bit value */
 	for(int i = 0; i< 4; i++)
 		idcode = data[i] << 24 | idcode >> 8;
@@ -497,7 +497,7 @@ static bool read_idcode(){
 	return print_idcode(idcode);
 }
 
-void print_ecp5_status_register(uint32_t status){	
+void print_ecp5_status_register(uint32_t status){
 	printf("ECP5 Status Register: 0x%08x\n", status);
 
 	if(verbose){
@@ -518,7 +518,7 @@ void print_ecp5_status_register(uint32_t status){
 		printf("  Encrypt Preamble:   %s\n",  status & (1 << 20) ? "Yes" : "No" );
 		printf("  Std Preamble:       %s\n",  status & (1 << 21) ? "Yes" : "No" );
 		printf("  SPIm Fail 1:        %s\n",  status & (1 << 22) ? "Yes" : "No" );
-		
+
 		uint8_t bse_error = (status & (7 << 23)) >> 23;
 		switch (bse_error){
 			case 0b000: printf("  BSE Error Code:     No Error (0b000)\n"); break;
@@ -540,7 +540,7 @@ void print_ecp5_status_register(uint32_t status){
 	}
 }
 
-void print_nx_status_register(uint64_t status){	
+void print_nx_status_register(uint64_t status){
 	printf("NX Status Register: 0x%016lx\n", status);
 
 	if(verbose){
@@ -571,7 +571,7 @@ void print_nx_status_register(uint64_t status){
 		printf("  Encrypt Preamble:   %s\n",  status & (1 << 21) ? "Yes" : "No" );
 		printf("  Std Preamble:       %s\n",  status & (1 << 22) ? "Yes" : "No" );
 		printf("  SPIm Fail 1:        %s\n",  status & (1 << 23) ? "Yes" : "No" );
-		
+
 		uint8_t bse_error = (status & (0b1111 << 24)) >> 24;
 		switch (bse_error){
 			case 0b0000: printf("  BSE Error Code:     No Error (0b000)\n"); break;
@@ -592,7 +592,7 @@ void print_nx_status_register(uint64_t status){
 		printf("  Invalid Command:    %s\n",  status & (1 << 30) ? "Yes" : "No" );
 		printf("  WDT Busy:           %s\n",  status & (1 << 31) ? "Yes" : "No" );
 		printf("  Dry Run DONE:       %s\n",  status & (1UL << 33) ? "Yes" : "No" );
-		
+
 		uint8_t bse_error1 = (status & (0b1111UL << 34)) >> 34;
 		switch (bse_error1){
 			case 0b0000: printf("  BSE Error 1 Code: (Previous Bitstream)  No Error (0b000)\n"); break;
@@ -616,7 +616,7 @@ void print_nx_status_register(uint64_t status){
 		printf("  I3C Parity Error 2: %s\n",  status & (1UL << 45) ? "Yes" : "No" );
 		printf("  Init Bus ID Error:  %s\n",  status & (1UL << 46) ? "Yes" : "No" );
 		printf("  I3C Parity Error 1: %s\n",  status & (1UL << 47) ? "Yes" : "No" );
-		
+
 		uint8_t auth_mode = (status & (0b11UL << 48)) >> 48;
 		switch (auth_mode){
 			case 0b00: printf("  Authentication Mode:  No Auth (0b00)\n"); break;
@@ -653,11 +653,11 @@ static void read_status_register(){
 	data[0] = 0;
 	jtag_go_to_state(STATE_SHIFT_DR);
 	//jtag_go_to_state(STATE_PAUSE_DR);
-	
+
 	if(connected_device.type == TYPE_ECP5){
 		jtag_tap_shift(data, data, 32, true);
 		uint32_t status = 0;
-		
+
 		/* Format the status into a 32bit value */
 		for(int i = 0; i< 4; i++)
 			status = data[i] << 24 | status >> 8;
@@ -668,7 +668,7 @@ static void read_status_register(){
 		jtag_tap_shift(data, data, 64, true);
 
 		uint64_t status = 0;
-		
+
 		/* Format the status into a 32bit value */
 		for(int i = 0; i< 8; i++)
 			status = (uint64_t)data[i] << 56 | status >> 8;
@@ -704,7 +704,7 @@ void ecp_jtag_cmd(uint8_t cmd){
 	jtag_tap_shift(data, data, 8, true);
 
 	jtag_go_to_state(STATE_RUN_TEST_IDLE);
-	jtag_wait_time(32);	
+	jtag_wait_time(32);
 }
 
 void ecp_jtag_cmd8(uint8_t cmd, uint8_t param){
@@ -718,7 +718,7 @@ void ecp_jtag_cmd8(uint8_t cmd, uint8_t param){
 	jtag_tap_shift(data, data, 8, true);
 
 	jtag_go_to_state(STATE_RUN_TEST_IDLE);
-	jtag_wait_time(32);	
+	jtag_wait_time(32);
 }
 
 // ---------------------------------------------------------
@@ -755,7 +755,7 @@ static void help(const char *progname)
 	fprintf(stderr, "\n");
 	fprintf(stderr, "Mode of operation:\n");
 	fprintf(stderr, "  [default]             write file contents to flash, then verify\n");
-	fprintf(stderr, "  -X                    write file contents to flash only\n");	
+	fprintf(stderr, "  -X                    write file contents to flash only\n");
 	fprintf(stderr, "  -r                    read first 256 kB from flash and write to file\n");
 	fprintf(stderr, "  -R <size in bytes>    read the specified number of bytes from flash\n");
 	fprintf(stderr, "                          (append 'k' to the argument for size in kilobytes,\n");
@@ -1173,9 +1173,9 @@ int main(int argc, char **argv)
 			jtag_go_to_state(STATE_CAPTURE_DR);
 			jtag_tap_shift(buffer, buffer, rc*8, false);
 		}
-	
+
 		ecp_jtag_cmd(ISC_DISABLE);
-		read_status_register();	
+		read_status_register();
 	}
 	else /* program flash */
 	{
@@ -1209,7 +1209,7 @@ int main(int argc, char **argv)
 				flash_write_enable();
 				flash_disable_protection();
 			}
-			
+
 			if (!dont_erase)
 			{
 				if (bulk_erase)
@@ -1266,6 +1266,10 @@ int main(int argc, char **argv)
 						if (block_offset + written > read_blocksize) {
 							written = read_blocksize - block_offset;
 						}
+						if (block_offset + written > rc)
+						{
+							written = rc - block_offset;
+						}
 
 						memcpy(buffer_tx, buffer_file + block_offset, written);
 
@@ -1310,7 +1314,7 @@ int main(int argc, char **argv)
 			}
 			fprintf(stderr, "\n");
 		} else if (!erase_mode && !disable_verify && !interleaved_verify) {
-			
+
 			flash_start_read(rw_offset);
 			for (int addr = 0; addr < file_size; addr += read_blocksize) {
 				uint8_t buffer_flash[read_blocksize], buffer_file[read_blocksize];
@@ -1318,9 +1322,9 @@ int main(int argc, char **argv)
 				int rc = fread(buffer_file, 1, read_blocksize, f);
 				if (rc <= 0)
 					break;
-				
+
 				flash_continue_read(buffer_flash, rc);
-				
+
 				/* Show progress */
 				fprintf(stderr, "\r\033[0Kverify..       %04u/%04lu", addr + rc, file_size);
 				if (memcmp(buffer_file, buffer_flash, rc)) {
