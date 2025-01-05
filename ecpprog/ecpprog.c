@@ -1259,7 +1259,7 @@ int main(int argc, char **argv)
 
 					for (int written, block_offset = 0; block_offset < rc; block_offset += written) {
 						/* Show progress */
-						fprintf(stderr, "\r\033[0Kprogramming..  %04u/%04lu", addr + block_offset, file_size);
+						fprintf(stderr, "\rprogramming..  %04u/%04lu", addr + block_offset, file_size);
 
 						int write_addr = rw_offset + addr + block_offset;
 						written = 256 - write_addr % 256;
@@ -1283,7 +1283,7 @@ int main(int argc, char **argv)
 						flash_continue_read(buffer_flash, rc);
 						flash_wait();
 						if (memcmp(buffer_file, buffer_flash, rc)) {
-							fprintf(stderr, "Found difference between flash and file!\n");
+							fprintf(stderr, "\nFound difference between flash and file!\n");
 							jtag_error(3);
 						}
 					}
@@ -1307,7 +1307,7 @@ int main(int argc, char **argv)
 				uint8_t buffer[read_blocksize];
 
 				/* Show progress */
-				fprintf(stderr, "\r\033[0Kreading..    %04u/%04u", addr + read_blocksize, read_size);
+				fprintf(stderr, "\rreading..    %04u/%04u", addr + read_blocksize, read_size);
 
 				flash_continue_read(buffer, read_blocksize);
 				fwrite(buffer, read_size - addr > read_blocksize ? read_blocksize : read_size - addr, 1, f);
@@ -1326,9 +1326,9 @@ int main(int argc, char **argv)
 				flash_continue_read(buffer_flash, rc);
 
 				/* Show progress */
-				fprintf(stderr, "\r\033[0Kverify..       %04u/%04lu", addr + rc, file_size);
+				fprintf(stderr, "\rverify..       %04u/%04lu", addr + rc, file_size);
 				if (memcmp(buffer_file, buffer_flash, rc)) {
-					fprintf(stderr, "Found difference between flash and file!\n");
+					fprintf(stderr, "\nFound difference between flash and file!\n");
 					jtag_error(3);
 				}
 
